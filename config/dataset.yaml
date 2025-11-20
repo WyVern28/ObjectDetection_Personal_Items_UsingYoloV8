@@ -1,0 +1,37 @@
+# Dataset configuration for Personal Items Detection
+# This will be updated after downloading the dataset
+
+path: ../datasets/personal_items
+train: images/train
+val: images/val
+test: images/test
+
+# Classes - Common personal items
+names:
+  0: backpack
+  1: handbag
+  2: suitcase
+  3: umbrella
+  4: tie
+  5: bottle
+  6: cup
+  7: fork
+  8: knife
+  9: spoon
+  10: bowl
+  11: laptop
+  12: mouse
+  13: remote
+  14: keyboard
+  15: cell_phone
+  16: book
+  17: clock
+  18: scissors
+  19: toothbrush
+  20: wallet
+  21: watch
+  22: glasses
+  23: keys
+  24: headphones
+
+nc: 25  # number of classes
