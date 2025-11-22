@@ -3,6 +3,7 @@ Train YOLOv8 model for Personal Items Detection
 """
 
 import argparse
+import torch
 from ultralytics import YOLO
 from pathlib import Path
 
@@ -20,15 +21,32 @@ def main():
     parser.add_argument('--batch', type=int, default=16,
                         help='Batch size')
     parser.add_argument('--device', type=str, default='0',
-                        help='Device (0 for GPU, cpu for CPU)')
+                        help='Device (0 for GPU 0, 1 for GPU 1, cpu for CPU)')
     parser.add_argument('--project', type=str, default='runs/train',
                         help='Project directory')
     parser.add_argument('--name', type=str, default='personal_items',
                         help='Experiment name')
     args = parser.parse_args()
 
+    # Check GPU availability
+    print("=" * 50)
+    print("GPU Check")
+    print("=" * 50)
+    if torch.cuda.is_available():
+        device_id = int(args.device) if args.device.isdigit() else 0
+        gpu_name = torch.cuda.get_device_name(device_id)
+        gpu_memory = torch.cuda.get_device_properties(device_id).total_memory / 1024**3
+        print(f"GPU Available: {gpu_name}")
+        print(f"GPU Memory: {gpu_memory:.1f} GB")
+        print(f"Using device: {args.device}")
+    else:
+        print("WARNING: No GPU detected! Training will be slow.")
+        print("Using CPU for training.")
+        args.device = 'cpu'
+    print("=" * 50)
+
     # Load model
-    print(f"Loading base model: {args.model}")
+    print(f"\nLoading base model: {args.model}")
     model = YOLO(args.model)
 
     # Train

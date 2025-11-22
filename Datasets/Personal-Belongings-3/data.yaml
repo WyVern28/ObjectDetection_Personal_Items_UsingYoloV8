@@ -1,0 +1,14 @@
+names:
+- Charger
+- Watch
+- keys-watch-charger
+nc: 3
+roboflow:
+  license: CC BY 4.0
+  project: personal-belongings
+  url: https://universe.roboflow.com/battery-detector/personal-belongings/dataset/3
+  version: 3
+  workspace: battery-detector
+test: ../test/images
+train: ../train/images
+val: ../valid/images

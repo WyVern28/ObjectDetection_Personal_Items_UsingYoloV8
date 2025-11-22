@@ -1,0 +1,12 @@
+names:
+- glasses
+- Ear_Piece
+- Smartwatch
+- Charger
+- Watch
+- keys-watch-charger
+nc: 6
+path: D:\ObjectDetection_TR_AI\datasets\personal_items_merged
+test: images/test
+train: images/train
+val: images/valid

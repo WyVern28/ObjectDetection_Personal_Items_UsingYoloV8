@@ -1,0 +1,12 @@
+names:
+- glasses
+nc: 1
+roboflow:
+  license: CC BY 4.0
+  project: glasses-w4pwl
+  url: https://universe.roboflow.com/sgugit-igrke/glasses-w4pwl/dataset/4
+  version: 4
+  workspace: sgugit-igrke
+test: ../test/images
+train: ../train/images
+val: ../valid/images

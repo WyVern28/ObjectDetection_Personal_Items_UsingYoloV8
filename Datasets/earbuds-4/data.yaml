@@ -1,0 +1,13 @@
+names:
+- Ear_Piece
+- Smartwatch
+nc: 2
+roboflow:
+  license: CC BY 4.0
+  project: earbuds-paaxr
+  url: https://universe.roboflow.com/nyp-g6utj/earbuds-paaxr/dataset/4
+  version: 4
+  workspace: nyp-g6utj
+test: ../test/images
+train: ../train/images
+val: ../valid/images
