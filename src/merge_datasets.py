@@ -179,7 +179,6 @@ if __name__ == "__main__":
 
     # List of dataset folders inside Datasets/
     datasets = [
-        "Datasets/vape",
         "Datasets/glasses-4",
         "Datasets/earbuds-4",
         "Datasets/Personal-Belongings-3",
