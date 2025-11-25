@@ -21,7 +21,7 @@ def create_app(config_class=Config):
 
     # Enable CORS for React frontend
     CORS(app, resources={
-        r"/api/*": {
+        r"/*": {
             "origins": ["http://localhost:3000", "http://localhost:5173"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"]
@@ -56,9 +56,42 @@ def create_app(config_class=Config):
                 'detect_image': '/api/detection/image',
                 'detect_stream': '/api/detection/stream',
                 'get_models': '/api/model/list',
-                'get_classes': '/api/model/classes'
+                'get_classes': '/api/model/classes',
+                'upload': '/api/detection/upload',
+                'video_feed': '/api/detection/video_feed',
+                'stop_camera': '/stop_camera',
+                'set_webcam': '/set_webcam'
             }
         }), 200
+
+    # Frontend-compatible endpoints (root level)
+    @app.route('/stop_camera', methods=['POST'])
+    def stop_camera():
+        """Stop camera - frontend compatible endpoint"""
+        return jsonify({'success': True, 'message': 'Camera stopped'}), 200
+
+    @app.route('/set_webcam', methods=['POST'])
+    def set_webcam():
+        """Set webcam - frontend compatible endpoint"""
+        return jsonify({'success': True, 'message': 'Webcam set'}), 200
+
+    @app.route('/upload', methods=['POST'])
+    def upload_root():
+        """Upload endpoint at root level - redirects to API"""
+        from flask import redirect
+        return redirect('/api/detection/upload', code=307)
+
+    @app.route('/video_feed', methods=['GET'])
+    def video_feed_root():
+        """Video feed at root level - redirects to API"""
+        from flask import redirect
+        return redirect(f'/api/detection/video_feed?{request.query_string.decode()}', code=307)
+
+    @app.route('/processed_image', methods=['GET'])
+    def processed_image_root():
+        """Processed image at root level - redirects to API"""
+        from flask import redirect
+        return redirect('/api/detection/processed_image', code=307)
 
     # Error handlers
     @app.errorhandler(404)

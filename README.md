@@ -1,6 +1,13 @@
-# Deteksi Barang-Barang Pribadi (Personal Items Detection)
+# 🎯 Object Detection Web Application
 
-Proyek deteksi objek menggunakan YOLOv8 untuk mendeteksi barang-barang pribadi secara real-time.
+Full-stack web application untuk Object Detection menggunakan YOLOv8 dengan React frontend dan Flask backend.
+
+![Status](https://img.shields.io/badge/Status-Production%20Ready-green)
+![Backend](https://img.shields.io/badge/Backend-Flask-blue)
+![Frontend](https://img.shields.io/badge/Frontend-React-cyan)
+![AI](https://img.shields.io/badge/AI-YOLOv8-orange)
+
+Proyek deteksi objek real-time dengan web interface modern yang dapat mendeteksi barang-barang pribadi dan objek umum.
 
 ## Barang yang Dapat Dideteksi
 
@@ -10,61 +17,159 @@ Proyek deteksi objek menggunakan YOLOv8 untuk mendeteksi barang-barang pribadi s
 - Elektronik (laptop, mouse, remote, keyboard, cell phone, headphones)
 - Lainnya (book, clock, scissors, toothbrush, wallet, keys)
 
-## Setup & Instalasi
+## 🚀 Quick Start
 
-### 1. Buat Virtual Environment
+### Prerequisites
+- Python 3.8+
+- Node.js 16+
+- Webcam (optional, untuk live detection)
 
+### 1️⃣ Clone Repository
 ```bash
-# Buat virtual environment
+git clone <repository-url>
+cd ObjectDetection_TR_AI
+```
+
+### 2️⃣ Backend Setup (Terminal 1)
+```bash
+cd backend
 python -m venv venv
-
-# Aktivasi (Windows)
-venv\Scripts\activate
-
-# Aktivasi (Linux/Mac)
-source venv/bin/activate
-```
-
-### 2. Install Dependencies
-
-```bash
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
+python app.py
 ```
+Backend runs at: **http://localhost:5000**
 
-### 3. Download Model YOLOv8
-
-Model akan otomatis didownload saat pertama kali dijalankan, atau download manual:
-
+### 3️⃣ Frontend Setup (Terminal 2)
 ```bash
-# Download model pre-trained
-python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
+cd frontend
+npm install
+npm run dev
+```
+Frontend runs at: **http://localhost:5173**
+
+### 4️⃣ Open Browser
+Navigate to: **http://localhost:5173**
+
+🎉 **Done!** Start detecting objects!
+
+---
+
+## 📖 Documentation
+
+- **[QUICKSTART.md](./QUICKSTART.md)** - Quick setup guide (5 minutes)
+- **[INTEGRATION_GUIDE.md](./INTEGRATION_GUIDE.md)** - API integration details
+- **[PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** - Full project documentation
+- **[backend/README.md](./backend/README.md)** - Backend API documentation
+
+---
+
+## ✨ Features
+
+### 🎥 **Real-time Webcam Detection**
+- Live object detection dari webcam
+- Real-time bounding boxes dan labels
+- Deteksi multiple objects simultaneously
+
+### 📸 **Image Upload Detection**
+- Upload gambar dari komputer
+- Instant detection results
+- Support: JPG, PNG, BMP, WEBP
+
+### 🎬 **Video Upload Detection**
+- Upload video files
+- Frame-by-frame detection
+- Support: MP4, AVI, MOV, MKV
+
+### 🎛️ **Multiple Models**
+- YOLOv8n (6MB) - Fastest
+- YOLOv8m (52MB) - Balanced
+- YOLO11n (6MB) - Latest
+
+### 🎨 **Modern UI**
+- Dark theme dengan glassmorphism
+- Responsive design
+- Loading states & animations
+- Real-time status indicators
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐         HTTP/REST API         ┌─────────────────┐
+│  React Frontend │ ──────────────────────────────▶│  Flask Backend  │
+│  (Port 5173)    │                                │  (Port 5000)    │
+│                 │ ◀────────────────────────────── │                 │
+│  - Upload UI    │    JSON / Image Stream         │  - YOLO Model   │
+│  - Webcam UI    │                                │  - OpenCV       │
+│  - Display      │                                │  - Detection    │
+└─────────────────┘                                └─────────────────┘
 ```
 
-## Penggunaan
+---
 
-### Deteksi Live Camera
+## 📁 Project Structure
 
+```
+ObjectDetection_TR_AI/
+├── backend/                 # Flask Backend API
+│   ├── app/
+│   │   ├── routes/          # API endpoints
+│   │   ├── services/        # YOLO detection service
+│   │   └── utils/           # Helper functions
+│   ├── uploads/             # Uploaded files
+│   ├── outputs/             # Detection results
+│   ├── *.pt                 # YOLO models
+│   └── app.py               # Main entry point
+│
+├── frontend/                # React Frontend
+│   ├── src/
+│   │   ├── App.jsx          # Main component
+│   │   └── main.jsx
+│   ├── public/
+│   └── package.json
+│
+├── QUICKSTART.md            # Quick setup guide
+├── INTEGRATION_GUIDE.md     # API integration guide
+└── README.md                # This file
+```
+
+---
+
+## 🎮 Usage
+
+### Web Interface
+
+1. **Stop Mode** (Default)
+   - Idle state, no detection running
+
+2. **Webcam Mode**
+   - Click **CAM** button
+   - Webcam will start with real-time detection
+
+3. **Upload Mode**
+   - Click **FILE** button
+   - Select image/video from computer
+   - View detection results instantly
+
+### Command Line (Legacy)
+
+#### Deteksi Live Camera
 ```bash
-# Gunakan model default (YOLOv8n pre-trained COCO)
-python src/detect_live.py
-
-# Dengan opsi tambahan
-python src/detect_live.py --model yolov8n.pt --camera 0 --conf 0.5 --show-fps
-
-# Gunakan model custom hasil training
-python src/detect_live.py --model runs/train/personal_items/weights/best.pt
+cd backend
+python src/detect_live.py --model yolov8n.pt --conf 0.25
 ```
 
-**Kontrol:**
-- `q` - Keluar
-- `s` - Screenshot
-- `f` - Toggle FPS
-
-### Deteksi pada Gambar
-
+#### Deteksi Gambar
 ```bash
 python src/detect_image.py --source path/to/image.jpg --save
-python src/detect_image.py --source path/to/folder/ --save
+```
+
+#### Training Custom Model
+```bash
+python src/train.py --data config/dataset.yaml --epochs 100
 ```
 
 ## Dataset

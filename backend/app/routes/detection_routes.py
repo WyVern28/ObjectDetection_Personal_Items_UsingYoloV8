@@ -317,3 +317,198 @@ def get_output_image(filename):
             return jsonify({'error': 'File not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# Additional simplified endpoints for frontend compatibility
+@detection_bp.route('/stop', methods=['POST'])
+def stop_detection():
+    """
+    Stop any ongoing detection (camera release, cleanup)
+    Frontend-compatible endpoint
+    """
+    try:
+        # In a stateless API, this mainly serves as an acknowledgment
+        # In production, you might want to manage camera sessions here
+        return jsonify({
+            'success': True,
+            'message': 'Detection stopped'
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@detection_bp.route('/webcam/start', methods=['POST'])
+def start_webcam():
+    """
+    Initialize webcam stream
+    Frontend-compatible endpoint
+    """
+    try:
+        data = request.get_json() or {}
+        camera = data.get('camera', 0)
+        conf = data.get('conf', 0.25)
+
+        # Test camera availability
+        cap = cv2.VideoCapture(camera)
+        if not cap.isOpened():
+            return jsonify({
+                'success': False,
+                'error': f'Cannot open camera {camera}'
+            }), 500
+        cap.release()
+
+        return jsonify({
+            'success': True,
+            'message': 'Webcam initialized',
+            'stream_url': f'/api/detection/video_feed?camera={camera}&conf={conf}'
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@detection_bp.route('/video_feed', methods=['GET'])
+def video_feed():
+    """
+    Video feed endpoint (alternative path for frontend compatibility)
+    Redirects to stream/video with same parameters
+    """
+    from flask import Response
+
+    camera_index = request.args.get('camera', default=0, type=int)
+    conf = request.args.get('conf', default=0.25, type=float)
+
+    def generate_frames():
+        """Generate frames with detection"""
+        cap = cv2.VideoCapture(camera_index)
+        service = get_detection_service()
+
+        try:
+            while True:
+                success, frame = cap.read()
+                if not success:
+                    break
+
+                # Run detection
+                annotated_frame, detections = service.detect_frame(frame, conf=conf, draw_boxes=True)
+
+                # Encode frame
+                ret, buffer = cv2.imencode('.jpg', annotated_frame)
+                frame_bytes = buffer.tobytes()
+
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
+        finally:
+            cap.release()
+
+    return Response(
+        generate_frames(),
+        mimetype='multipart/x-mixed-replace; boundary=frame'
+    )
+
+
+@detection_bp.route('/upload', methods=['POST'])
+def upload_file():
+    """
+    Upload file endpoint (simplified for frontend)
+    Handles both image and video files
+    """
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+
+        file = request.files['file']
+
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+
+        # Get file extension
+        filename = secure_filename(file.filename)
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+
+        # Save file
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        new_filename = f"{timestamp}_{filename}"
+        filepath = os.path.join(Config.UPLOAD_FOLDER, new_filename)
+        file.save(filepath)
+
+        # Determine file type
+        image_exts = ['jpg', 'jpeg', 'png', 'bmp', 'webp']
+        video_exts = ['mp4', 'avi', 'mov', 'mkv', 'webm']
+
+        if ext in image_exts:
+            # Process image immediately
+            conf = request.form.get('conf', type=float, default=0.25)
+            service = get_detection_service()
+            output_path = os.path.join(Config.OUTPUT_FOLDER, f"detected_{new_filename}")
+            result = service.detect_image(filepath, conf=conf, save_result=True, output_path=output_path)
+
+            if 'error' in result:
+                return jsonify({'error': result['error']}), 500
+
+            # Convert annotated image to base64
+            annotated_image = cv2.imread(output_path)
+            image_base64 = service.frame_to_base64(annotated_image)
+
+            return jsonify({
+                'success': True,
+                'type': 'image',
+                'filename': new_filename,
+                'detections': result.get('detections', []),
+                'count': result.get('count', 0),
+                'image': image_base64
+            }), 200
+
+        elif ext in video_exts:
+            # For video, return metadata and prepare for streaming
+            return jsonify({
+                'success': True,
+                'type': 'video',
+                'filename': new_filename,
+                'message': 'Video uploaded, use video_feed endpoint for streaming'
+            }), 200
+        else:
+            os.remove(filepath)
+            return jsonify({'error': 'Unsupported file type'}), 400
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@detection_bp.route('/processed_image', methods=['GET'])
+def get_processed_image():
+    """
+    Get the most recently processed image
+    Returns the last processed image in base64 format
+    """
+    try:
+        # Get most recent file from outputs folder
+        output_files = [f for f in os.listdir(Config.OUTPUT_FOLDER)
+                       if f.endswith(('.jpg', '.jpeg', '.png'))]
+
+        if not output_files:
+            return jsonify({'error': 'No processed images found'}), 404
+
+        # Sort by modification time and get most recent
+        output_files.sort(key=lambda x: os.path.getmtime(
+            os.path.join(Config.OUTPUT_FOLDER, x)), reverse=True)
+        latest_file = output_files[0]
+
+        # Read and convert to base64
+        filepath = os.path.join(Config.OUTPUT_FOLDER, latest_file)
+        image = cv2.imread(filepath)
+
+        if image is None:
+            return jsonify({'error': 'Could not read image'}), 500
+
+        service = get_detection_service()
+        image_base64 = service.frame_to_base64(image)
+
+        return jsonify({
+            'success': True,
+            'filename': latest_file,
+            'image': image_base64
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

@@ -78,14 +78,24 @@ export default function App() {
     try {
       // upload file
       const res = await fetch(`${API_BASE}/upload`, { method: 'POST', body: formData });
+
+      if (!res.ok) {
+        throw new Error('Upload failed');
+      }
+
       const data = await res.json();
 
       if (data.type === 'image') {
-        // jika gambar, fetch hasil prosesnya
-        const imgRes = await fetch(`${API_BASE}/processed_image`);
-        const imgData = await imgRes.json();
-        if (imgData.image) {
-          setImageResult(imgData.image);
+        // jika gambar, langsung tampilkan dari response
+        if (data.image) {
+          setImageResult(data.image);
+        } else {
+          // fallback: fetch hasil prosesnya
+          const imgRes = await fetch(`${API_BASE}/processed_image`);
+          const imgData = await imgRes.json();
+          if (imgData.image) {
+            setImageResult(imgData.image);
+          }
         }
       } else {
         // jika video upload, reset result dan trigger stream
@@ -93,7 +103,8 @@ export default function App() {
         setStreamTrigger(prev => prev + 1);
       }
     } catch (error) {
-      alert("Gagal upload atau backend offline.");
+      console.error("Upload error:", error);
+      alert("Gagal upload atau backend offline. Pastikan backend berjalan di " + API_BASE);
       handleStop();
     } finally {
       setIsLoading(false);
