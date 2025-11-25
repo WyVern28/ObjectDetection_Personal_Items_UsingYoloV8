@@ -1,0 +1,30 @@
+# Flask Backend Dependencies for Object Detection API
+
+# Flask Framework
+Flask>=3.0.0
+flask-cors>=4.0.0
+Werkzeug>=3.0.0
+
+# Object Detection (YOLOv8)
+ultralytics>=8.0.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+torch>=2.0.0
+torchvision>=0.15.0
+Pillow>=9.0.0
+
+# Data Visualization & Analysis
+matplotlib>=3.7.0
+tqdm>=4.65.0
+
+# Dataset Management
+roboflow>=1.1.0
+
+# Utilities
+python-dotenv>=1.0.0
+PyYAML>=6.0
+requests>=2.31.0
+
+# Production Server (Optional)
+gunicorn>=21.2.0  # Production WSGI server
+gevent>=23.9.1    # Async support
